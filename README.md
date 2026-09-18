@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ajaia Docs
 
-## Getting Started
+Lightweight collaborative documents for the Ajaia LLC AI-native full stack take-home. Users can create, rename, edit, import `.txt`/`.md` files, share with seeded accounts, and reopen work after refresh.
 
-First, run the development server:
+## Reviewer accounts
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Owner (Alex) | `alex@ajaia.dev` | `demo123` |
+| Collaborator (Jordan) | `jordan@ajaia.dev` | `demo123` |
+
+Sign in as Alex, then as Jordan, to see **Owned by you** vs **Shared with you**. Alex already owns a seeded starter note shared with Jordan.
+
+## Supported file import
+
+- `.txt` — imported as paragraphs
+- `.md` — headings (`#`–`###`), bullets, numbered lists, bold, italic, inline code
+- Max size: 1 MB
+- `.docx` and other types are **not** supported
+
+## Local setup
+
+Requirements: Node 20+ and npm. Docker is optional.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
+npm install
+npm run db:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Keep that process running, then in another terminal:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma migrate deploy
+npm run db:seed
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+`npm run db:start` runs a local Postgres 18 binary in `data/postgres` (no Docker, no sudo). If you already have Docker, `docker compose up -d` still works instead.
 
-To learn more about Next.js, take a look at the following resources:
+Useful scripts:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm test          # access-control and import conversion tests
+npm run lint
+npm run build     # production build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If Docker is not available, install Postgres another way and point `DATABASE_URL` at it, then run migrate and seed:
 
-## Deploy on Vercel
+```bash
+npx prisma migrate deploy
+npm run db:seed
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy (free path)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create a free [Neon](https://neon.tech) Postgres database.
+2. Push this repo to GitHub.
+3. Import the project on [Vercel](https://vercel.com).
+4. Set environment variables:
+   - `DATABASE_URL` — Neon connection string (require SSL)
+   - `SESSION_SECRET` — long random string
+5. In the Vercel build command use `prisma migrate deploy && prisma db seed && next build`, or run migrate/seed once from your machine against the Neon URL:
+
+```bash
+DATABASE_URL="postgresql://..." npx prisma migrate deploy
+DATABASE_URL="postgresql://..." npx prisma db seed
+```
+
+Reviewers should not need a paid service.
+
+## What works
+
+- Cookie login with seeded users
+- Create / rename / delete (owner) / edit rich text / autosave
+- Import `.txt` and `.md` into a new document
+- Share by email, revoke access, owned vs shared lists
+- Persistence in PostgreSQL (TipTap HTML)
+
+## Intentionally out of scope
+
+- Real-time multiplayer cursors
+- Comments, suggestions, version history
+- Google-account SSO
+- `.docx` import / PDF export
+- Role finer than owner vs collaborator (collaborators can edit, owners manage sharing)
+
+With another 2–4 hours I would add presence indicators and Markdown export.
+
+## Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md). AI usage is in [AI_WORKFLOW.md](./AI_WORKFLOW.md). Submission checklist is in [SUBMISSION.md](./SUBMISSION.md).

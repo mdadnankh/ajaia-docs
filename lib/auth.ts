@@ -64,11 +64,3 @@ export const getCurrentUser = cache(async () => {
     select: { id: true, email: true, name: true },
   });
 });
-
-export async function requireUser() {
-  const user = await getCurrentUser();
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-  return user;
-}

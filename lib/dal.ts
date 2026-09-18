@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { canDelete, canEdit, canManageSharing, canRename, resolveAccess, type AccessRole } from "@/lib/access";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,7 +9,7 @@ export type CurrentUser = { id: string; email: string; name: string };
 export async function requireCurrentUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error("Unauthorized");
+    redirect("/login");
   }
   return user;
 }
